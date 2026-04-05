@@ -21,17 +21,38 @@
     }
     h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
     p { color: #888; font-size: 0.9rem; }
-    .error { color: #ff453a; margin-top: 1rem; display: none; }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #333;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 1.5rem auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .retry {
+      display: none;
+      margin-top: 1.5rem;
+    }
+    .retry a {
+      color: #fff;
+      text-decoration: none;
+      border-bottom: 1px solid #444;
+      padding-bottom: 2px;
+      font-size: 0.9rem;
+    }
+    .retry a:hover { border-color: #888; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Opening CLiOS...</h1>
-    <p>You will be redirected to the app automatically.</p>
-    <p class="error" id="error">
-      CLiOS is not installed or the link is invalid.<br>
-      Make sure CLiOS is installed on your device.
-    </p>
+    <div class="spinner"></div>
+    <h1>Connecting to CLiOS...</h1>
+    <p>Opening the app automatically.</p>
+    <div class="retry" id="retry">
+      <p>Didn't open? <a id="retry-link" href="#">Tap here to try again</a></p>
+    </div>
   </div>
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -39,17 +60,18 @@
     const port = params.get('port') || '18789';
     const token = params.get('token');
 
-    if (!host || !token) {
-      document.getElementById('error').style.display = 'block';
-      document.querySelector('h1').textContent = 'Invalid link';
-      document.querySelector('p').style.display = 'none';
-    } else {
-      const deepLink = `clios://connect?host=${encodeURIComponent(host)}&port=${encodeURIComponent(port)}&token=${encodeURIComponent(token)}`;
-      window.location.href = deepLink;
+    const deepLink = `clios://connect?host=${encodeURIComponent(host)}&port=${encodeURIComponent(port)}&token=${encodeURIComponent(token)}`;
 
-      // Show error after 2s if app didn't open
+    document.getElementById('retry-link').href = deepLink;
+
+    if (!host || !token) {
+      document.querySelector('h1').textContent = 'Invalid link';
+      document.querySelector('p').textContent = 'Missing connection parameters.';
+      document.querySelector('.spinner').style.display = 'none';
+    } else {
+      window.location.href = deepLink;
       setTimeout(() => {
-        document.getElementById('error').style.display = 'block';
+        document.getElementById('retry').style.display = 'block';
       }, 2000);
     }
   </script>
